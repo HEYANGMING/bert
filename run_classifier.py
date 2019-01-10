@@ -13,6 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """BERT finetuning runner."""
+# -*- coding:utf-8 -*-
+# -*- created by: rsh -*-
 
 from __future__ import absolute_import
 from __future__ import division
@@ -25,35 +27,44 @@ import modeling
 import optimization
 import tokenization
 import tensorflow as tf
+import time
+import numpy as np
+os.environ["CUDA_VISIBLE_DEVICES"] = "2,3"
 
 flags = tf.flags
 
 FLAGS = flags.FLAGS
-
+# base_bert_file = 'D:/workspace/python/pythonGithubCode/Embedding/BERT/bert/chinese_L-12_H-768_A-12/'
+# base_file = 'D:/workspace/python/pythonGithubCode/Embedding/BERT/bert/'
+# data_dir = 'D:/workspace/python/pythonGithubCode/Embedding/BERT/bert/data_dir/class_gov_try'
+base_bert_file = 'chinese_L-12_H-768_A-12/'
+base_file = ''
+data_dir = 'data_dir/class_gov_try'
+path_output_time = 'class_gov_try_yours' #str(time.time())
 ## Required parameters
 flags.DEFINE_string(
-    "data_dir", None,
+    "data_dir", data_dir,
     "The input data dir. Should contain the .tsv files (or other data files) "
     "for the task.")
 
 flags.DEFINE_string(
-    "bert_config_file", None,
+    "bert_config_file", base_bert_file + 'bert_config.json',
     "The config json file corresponding to the pre-trained BERT model. "
     "This specifies the model architecture.")
 
-flags.DEFINE_string("task_name", None, "The name of the task to train.")
+flags.DEFINE_string("task_name", 'gov', "The name of the task to train.")
 
-flags.DEFINE_string("vocab_file", None,
+flags.DEFINE_string("vocab_file", base_bert_file + 'vocab.txt',
                     "The vocabulary file that the BERT model was trained on.")
 
 flags.DEFINE_string(
-    "output_dir", None,
+    "output_dir", 'output_model/' + path_output_time + '/',
     "The output directory where the model checkpoints will be written.")
 
 ## Other parameters
 
 flags.DEFINE_string(
-    "init_checkpoint", None,
+    "init_checkpoint", base_bert_file + 'bert_model.ckpt',
     "Initial checkpoint (usually from a pre-trained BERT model).")
 
 flags.DEFINE_bool(
@@ -62,24 +73,24 @@ flags.DEFINE_bool(
     "models and False for cased models.")
 
 flags.DEFINE_integer(
-    "max_seq_length", 128,
+    "max_seq_length", 50,
     "The maximum total input sequence length after WordPiece tokenization. "
     "Sequences longer than this will be truncated, and sequences shorter "
     "than this will be padded.")
 
-flags.DEFINE_bool("do_train", False, "Whether to run training.")
+flags.DEFINE_bool("do_train", True, "Whether to run training.")
 
-flags.DEFINE_bool("do_eval", False, "Whether to run eval on the dev set.")
+flags.DEFINE_bool("do_eval", True, "Whether to run eval on the dev set.")
 
 flags.DEFINE_bool(
-    "do_predict", False,
+    "do_predict", True,
     "Whether to run the model in inference mode on the test set.")
 
-flags.DEFINE_integer("train_batch_size", 32, "Total batch size for training.")
+flags.DEFINE_integer("train_batch_size", 2, "Total batch size for training.")
 
-flags.DEFINE_integer("eval_batch_size", 8, "Total batch size for eval.")
+flags.DEFINE_integer("eval_batch_size", 2, "Total batch size for eval.")
 
-flags.DEFINE_integer("predict_batch_size", 8, "Total batch size for predict.")
+flags.DEFINE_integer("predict_batch_size", 2, "Total batch size for predict.")
 
 flags.DEFINE_float("learning_rate", 5e-5, "The initial learning rate for Adam.")
 
@@ -372,6 +383,63 @@ class ColaProcessor(DataProcessor):
       examples.append(
           InputExample(guid=guid, text_a=text_a, text_b=None, label=label))
     return examples
+
+class govProcessor(DataProcessor):
+
+    def get_train_examples(self, data_dir):
+        file_path = os.path.join(data_dir, 'test.csv')
+        with open(file_path, 'r', encoding='utf-8') as f:
+            reader = f.readlines()
+        examples = []
+        labels_train = []
+        for index, line in enumerate(reader):
+            guid = 'train-%d' % index
+            split_line = line.strip().split(',')
+            text_a = tokenization.convert_to_unicode(split_line[1])
+            # text_b = tokenization.convert_to_unicode(split_line[2])
+            label = split_line[0]
+            labels_train.append(label)
+            examples.append(InputExample(guid=guid, text_a=text_a,
+                                         text_b=None, label=label))
+        return examples, labels_train
+
+
+    def get_dev_examples(self, data_dir):
+        file_path = os.path.join(data_dir, 'test.csv')
+        with open(file_path, 'r', encoding='utf-8') as f:
+            reader = f.readlines()
+        examples = []
+        labels_dev = []
+        for index, line in enumerate(reader):
+            guid = 'dev-%d' % index
+            split_line = line.strip().split(',')
+            text_a = tokenization.convert_to_unicode(split_line[1])
+            # text_b = tokenization.convert_to_unicode(split_line[2])
+            label = split_line[0]
+            labels_dev.append(label)
+            examples.append(InputExample(guid=guid, text_a=text_a,
+                                         text_b=None, label=label))
+        return examples, labels_dev
+
+    def get_test_examples(self, data_dir):
+        file_path = os.path.join(data_dir, 'test.csv')
+        with open(file_path, 'r', encoding='utf-8') as f:
+            reader = f.readlines()
+        examples = []
+        labels_test = []
+        for index, line in enumerate(reader):
+            guid = 'test-%d' % index
+            split_line = line.strip().split(',')
+            text_a = tokenization.convert_to_unicode(split_line[1])
+            # text_b = tokenization.convert_to_unicode(split_line[2])
+            label = split_line[0]
+            labels_test.append(label)
+            examples.append(InputExample(guid=guid, text_a=text_a,
+                                         text_b=None, label=label))
+        return examples, labels_test
+
+    def get_labels(self):
+        return ['0','1']
 
 
 def convert_single_example(ex_index, example, label_list, max_seq_length,
@@ -784,10 +852,11 @@ def main(_):
   tf.logging.set_verbosity(tf.logging.INFO)
 
   processors = {
-      "cola": ColaProcessor,
-      "mnli": MnliProcessor,
-      "mrpc": MrpcProcessor,
-      "xnli": XnliProcessor,
+      # "cola": ColaProcessor,
+      # "mnli": MnliProcessor,
+      # "mrpc": MrpcProcessor,
+      # "xnli": XnliProcessor,
+      "gov": govProcessor  # 添加自己的processor
   }
 
   tokenization.validate_case_matches_checkpoint(FLAGS.do_lower_case,
@@ -838,14 +907,17 @@ def main(_):
   train_examples = None
   num_train_steps = None
   num_warmup_steps = None
+  train_examples, train_labels = processor.get_train_examples(FLAGS.data_dir)
+
   if FLAGS.do_train:
-    train_examples = processor.get_train_examples(FLAGS.data_dir)
+    # train_examples = processor.get_train_examples(FLAGS.data_dir)
     num_train_steps = int(
         len(train_examples) / FLAGS.train_batch_size * FLAGS.num_train_epochs)
     num_warmup_steps = int(num_train_steps * FLAGS.warmup_proportion)
 
   model_fn = model_fn_builder(
       bert_config=bert_config,
+      # num_labels=len(label_list),
       num_labels=len(label_list),
       init_checkpoint=FLAGS.init_checkpoint,
       learning_rate=FLAGS.learning_rate,
@@ -857,17 +929,20 @@ def main(_):
   # If TPU is not available, this will fall back to normal Estimator on CPU
   # or GPU.
   estimator = tf.contrib.tpu.TPUEstimator(
+  # estimator = tf.estimator.Estimator(
       use_tpu=FLAGS.use_tpu,
       model_fn=model_fn,
       config=run_config,
       train_batch_size=FLAGS.train_batch_size,
       eval_batch_size=FLAGS.eval_batch_size,
-      predict_batch_size=FLAGS.predict_batch_size)
+      predict_batch_size=FLAGS.predict_batch_size
+      )
 
   if FLAGS.do_train:
     train_file = os.path.join(FLAGS.output_dir, "train.tf_record")
     file_based_convert_examples_to_features(
         train_examples, label_list, FLAGS.max_seq_length, tokenizer, train_file)
+    # train_examples, label_list, FLAGS.max_seq_length, tokenizer, train_file)
     tf.logging.info("***** Running training *****")
     tf.logging.info("  Num examples = %d", len(train_examples))
     tf.logging.info("  Batch size = %d", FLAGS.train_batch_size)
@@ -880,7 +955,8 @@ def main(_):
     estimator.train(input_fn=train_input_fn, max_steps=num_train_steps)
 
   if FLAGS.do_eval:
-    eval_examples = processor.get_dev_examples(FLAGS.data_dir)
+    # eval_examples = processor.get_dev_examples(FLAGS.data_dir)
+    eval_examples, eval_labels = processor.get_dev_examples(FLAGS.data_dir)
     num_actual_eval_examples = len(eval_examples)
     if FLAGS.use_tpu:
       # TPU requires a fixed batch size for all batches, therefore the number
@@ -926,7 +1002,7 @@ def main(_):
         writer.write("%s = %s\n" % (key, str(result[key])))
 
   if FLAGS.do_predict:
-    predict_examples = processor.get_test_examples(FLAGS.data_dir)
+    predict_examples, predict_labels = processor.get_test_examples(FLAGS.data_dir)
     num_actual_predict_examples = len(predict_examples)
     if FLAGS.use_tpu:
       # TPU requires a fixed batch size for all batches, therefore the number
@@ -973,9 +1049,9 @@ def main(_):
 
 
 if __name__ == "__main__":
-  flags.mark_flag_as_required("data_dir")
-  flags.mark_flag_as_required("task_name")
-  flags.mark_flag_as_required("vocab_file")
-  flags.mark_flag_as_required("bert_config_file")
-  flags.mark_flag_as_required("output_dir")
+  # flags.mark_flag_as_required("data_dir")
+  # flags.mark_flag_as_required("task_name")
+  # flags.mark_flag_as_required("vocab_file")
+  # flags.mark_flag_as_required("bert_config_file")
+  # flags.mark_flag_as_required("output_dir")
   tf.app.run()
