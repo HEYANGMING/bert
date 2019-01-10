@@ -1,3 +1,6 @@
+#CSDN
+地址(addr):https://blog.csdn.net/rensihui/article/details/86215882
+
 # BERT
 
 **\*\*\*\*\* New November 23rd, 2018: Un-normalized multilingual model + Thai +
