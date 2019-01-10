@@ -40,7 +40,7 @@ FLAGS = flags.FLAGS
 base_bert_file = 'chinese_L-12_H-768_A-12/'
 base_file = ''
 data_dir = 'data_dir/class_gov_try'
-path_output_time = 'class_gov_try_yours' #str(time.time())
+path_output_time = 'class_gov_try' #str(time.time())
 ## Required parameters
 flags.DEFINE_string(
     "data_dir", data_dir,
