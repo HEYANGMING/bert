@@ -1,6 +1,7 @@
 #CSDN
 地址(addr):https://blog.csdn.net/rensihui/article/details/86215882
-userd: python run_classify.py
+
+**run classify: python run_classifier.py
 
 # BERT
 
