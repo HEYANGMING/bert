@@ -1055,4 +1055,4 @@ if __name__ == "__main__":
   # flags.mark_flag_as_required("bert_config_file")
   # flags.mark_flag_as_required("output_dir")
   tf.app.run()
-    print("备注:   model.ckpt-15.data-00000-of-00001有400M传不上github，这个chinese_L-12_H-768_A-12预先训练好的模型先去谷歌下载替换吧")
+  print("备注:   model.ckpt-15.data-00000-of-00001有400M传不上github，这个chinese_L-12_H-768_A-12预先训练好的模型先去谷歌下载替换吧")
