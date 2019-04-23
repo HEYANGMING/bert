@@ -3,6 +3,8 @@
 
 **run classify: python run_classifier.py
 
+# 备注:   model.ckpt-15.data-00000-of-00001有400M传不上github，这个chinese_L-12_H-768_A-12预先训练好的模型先去谷歌下载替换吧
+
 # BERT
 
 **\*\*\*\*\* New November 23rd, 2018: Un-normalized multilingual model + Thai +
